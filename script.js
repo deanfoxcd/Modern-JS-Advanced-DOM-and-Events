@@ -13,6 +13,9 @@ const tabsContainer = document.querySelector('.operations__tab-container');
 const tabsContent = document.querySelectorAll('.operations__content');
 const btnScrollTo = document.querySelector('.btn--scroll-to');
 const section1 = document.getElementById('section--1');
+const initialCoords = section1.getBoundingClientRect();
+const header = document.querySelector('.header');
+const allSections = document.querySelectorAll('.section');
 
 const openModal = function (e) {
   e.preventDefault();
@@ -42,7 +45,6 @@ document.addEventListener('keydown', function (e) {
 // FUNCTIONALITY
 
 // Tabbed Component
-
 tabsContainer.addEventListener('click', function (e) {
   e.preventDefault();
   const clicked = e.target.closest('.operations__tab');
@@ -61,7 +63,6 @@ tabsContainer.addEventListener('click', function (e) {
 });
 
 // Page Navigation
-
 // Without using propagation (attaching the function to each link (inefficient))
 /*
 document.querySelectorAll('.nav__link').forEach(function (el) {
@@ -86,9 +87,7 @@ document.querySelector('.nav__links').addEventListener('click', function (e) {
 });
 
 // Button Scrolling (Learn More)
-
 btnScrollTo.addEventListener('click', e => {
-  const s1coords = section1.getBoundingClientRect();
   // Scrolling
   // The offsets account for where the page is currently scrolled to. It might not be at the top
 
@@ -109,7 +108,6 @@ btnScrollTo.addEventListener('click', e => {
 });
 
 // Menu Fade Animation
-
 const handleHover = function (element, opacity) {
   if (element.target.classList.contains('nav__link')) {
     const link = element.target;
@@ -132,6 +130,90 @@ nav.addEventListener('mouseout', e => {
   handleHover(e, 1);
 });
 // There is a way to do this with bind (see video 196)
+
+// Sticky Navigation
+// Bad for performance, constantly firing
+// window.addEventListener('scroll', () => {
+//   if (window.scrollY > initialCoords.top) nav.classList.add('sticky');
+//   else nav.classList.remove('sticky');
+// });
+
+// With Intersection Observer API
+// const obsCallback = function (entries, observer) {
+//   entries.forEach(entry => console.log(entry));
+// };
+
+// const obsOptions = {
+//   root: null,
+//   threshold: [0, 0.2], // Basically when it's not visible or when 20% threshold passed
+// };
+
+// const observer = new IntersectionObserver(obsCallback, obsOptions);
+// observer.observe(section1);
+
+const navHeight = nav.getBoundingClientRect().height;
+
+const stickyNav = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) {
+    nav.classList.add('sticky');
+  } else nav.classList.remove('sticky');
+};
+
+const obsOptions = {
+  root: null,
+  threshold: 0,
+  rootMargin: `-${navHeight}px`,
+};
+
+const headerObserver = new IntersectionObserver(stickyNav, obsOptions);
+headerObserver.observe(header);
+
+// Reveal Sections
+const revealSection = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) return;
+  entry.target.classList.remove('section--hidden');
+  observer.unobserve(entry.target); // So the observe doesn't keep getting triggered once the sections are all revealed/observed
+};
+
+const revealOptions = {
+  root: null,
+  threshold: 0.15,
+};
+
+const sectionObserver = new IntersectionObserver(revealSection, revealOptions);
+
+allSections.forEach(section => {
+  sectionObserver.observe(section);
+  section.classList.add('section--hidden');
+});
+
+// Lazy Loading Images
+const imgTargets = document.querySelectorAll('img[data-src');
+console.log(imgTargets);
+
+const loadImg = function (entries, observer) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) return;
+  entry.target.src = entry.target.dataset.src;
+  // entry.target.classList.remove('lazy-img'); // This will be a problem on a slow connection. The blurry class will be removed before the image has fully loaded
+
+  entry.target.addEventListener('load', () =>
+    entry.target.classList.remove('lazy-img')
+  );
+  observer.unobserve(entry.target);
+};
+
+const loadImgOptions = {
+  root: null,
+  threshold: 0,
+  rootMargin: '+200px',
+};
+
+const imgObserver = new IntersectionObserver(loadImg, loadImgOptions);
+
+imgTargets.forEach(img => imgObserver.observe(img));
 
 //////////// LECTURES
 
