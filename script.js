@@ -7,6 +7,12 @@ const modal = document.querySelector('.modal');
 const overlay = document.querySelector('.overlay');
 const btnCloseModal = document.querySelector('.btn--close-modal');
 const btnsOpenModal = document.querySelectorAll('.btn--show-modal');
+const nav = document.querySelector('.nav');
+const tabs = document.querySelectorAll('.operations__tab');
+const tabsContainer = document.querySelector('.operations__tab-container');
+const tabsContent = document.querySelectorAll('.operations__content');
+const btnScrollTo = document.querySelector('.btn--scroll-to');
+const section1 = document.getElementById('section--1');
 
 const openModal = function (e) {
   e.preventDefault();
@@ -32,6 +38,102 @@ document.addEventListener('keydown', function (e) {
     closeModal();
   }
 });
+
+// FUNCTIONALITY
+
+// Tabbed Component
+
+tabsContainer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const clicked = e.target.closest('.operations__tab');
+  // The below is a more modern way of checking instead of using the IF block as used in the propagation section
+  if (!clicked) return;
+
+  // Active tab
+  tabs.forEach(tab => tab.classList.remove('operations__tab--active'));
+  clicked.classList.add('operations__tab--active');
+
+  // Content
+  tabsContent.forEach(t => t.classList.remove('operations__content--active'));
+  document
+    .querySelector(`.operations__content--${clicked.dataset.tab}`)
+    .classList.add('operations__content--active');
+});
+
+// Page Navigation
+
+// Without using propagation (attaching the function to each link (inefficient))
+/*
+document.querySelectorAll('.nav__link').forEach(function (el) {
+  el.addEventListener('click', function (e) {
+    e.preventDefault(); // stops the page jumping to the section (the anchor)
+    const id = this.getAttribute('href');
+    document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
+    // can't use getelementbyid because 'id' contains the #
+  });
+});
+*/
+
+// With propagation (using the parent of all these links)
+document.querySelector('.nav__links').addEventListener('click', function (e) {
+  e.preventDefault();
+  // The if block is needed so that clicking in whitespace between the links doesn't do anything. Without the IF it would throw an error
+  // Matching strategy
+  if (e.target.classList.contains('nav__link')) {
+    const id = e.target.getAttribute('href');
+    document.querySelector(id).scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+// Button Scrolling (Learn More)
+
+btnScrollTo.addEventListener('click', e => {
+  const s1coords = section1.getBoundingClientRect();
+  // Scrolling
+  // The offsets account for where the page is currently scrolled to. It might not be at the top
+
+  // window.scrollTo(
+  //   s1coords.left + window.pageXOffset,
+  //   s1coords.top + window.pageYOffset
+  // );
+
+  // Add smooth scrolling
+  // window.scrollTo({
+  //   left: s1coords.left + window.pageXOffset,
+  //   top: s1coords.top + window.pageYOffset,
+  //   behavior: 'smooth',
+  // });
+
+  // More modern way
+  section1.scrollIntoView({ behavior: 'smooth' });
+});
+
+// Menu Fade Animation
+
+const handleHover = function (element, opacity) {
+  if (element.target.classList.contains('nav__link')) {
+    const link = element.target;
+    // const siblings = link.closest('.nav__links').querySelectorAll('.nav__link'); // Also works
+    const siblings = link.closest('.nav').querySelectorAll('.nav__link');
+    const logo = link.closest('.nav').querySelector('img');
+
+    siblings.forEach(el => {
+      if (el !== link) el.style.opacity = opacity;
+      logo.style.opacity = opacity;
+    });
+  }
+};
+
+nav.addEventListener('mouseover', e => {
+  handleHover(e, 0.5);
+});
+
+nav.addEventListener('mouseout', e => {
+  handleHover(e, 1);
+});
+// There is a way to do this with bind (see video 196)
+
+//////////// LECTURES
 
 // Selecting, creating, and deleting
 /*
@@ -108,4 +210,78 @@ console.log(logo.dataset.versionNumber);
 
 // Classes
 //add, remove, toggle, contains
+*/
+
+// Events and event handlers
+/*
+const h1 = document.querySelector('h1');
+
+const alertH1 = function (e) {
+  alert('Great!');
+};
+
+// More old-school, can't be stacked
+// h1.onmouseenter = e => {
+//   alert('Great!');
+// };
+
+// Removing event listeners
+h1.addEventListener('mouseenter', alertH1);
+
+setTimeout(() => h1.removeEventListener('mouseenter', alertH1), 3000);
+*/
+
+// Event Propagation
+/*
+
+const randomInt = (min, max) =>
+  Math.floor(Math.random() * (max - min + 1) + min);
+
+const randomColor = () =>
+  `rgb(${randomInt(0, 255)}, ${randomInt(0, 255)}, ${randomInt(0, 255)})`;
+
+document.querySelector('.nav__link').addEventListener('click', function (e) {
+  this.style.backgroundColor = randomColor(); // Can't use arrow function
+
+  // stop propagation
+  // e.stopPropagation()
+});
+document.querySelector('.nav__links').addEventListener('click', function (e) {
+  this.style.backgroundColor = randomColor(); // this === e.target
+});
+document.querySelector('.nav').addEventListener('click', function (e) {
+  this.style.backgroundColor = randomColor();
+});
+*/
+
+// DOM Navigation
+/*
+
+const h1 = document.querySelector('h1');
+
+// Going downwards (child)
+console.log(h1.querySelectorAll('.highlight')); // All elements with this class no matter how deep
+console.log(h1.childNodes); // Direct children. Everything under the h1
+console.log(h1.children); // Direct children. Just the elements
+h1.firstElementChild.style.color = 'white';
+h1.lastElementChild.style.color = 'orangered';
+
+// Going upwards
+console.log(h1.parentNode);
+console.log(h1.parentElement);
+
+h1.closest('.header').style.background = 'var(--gradient-secondary)';
+// Closest is kind of the opposite to querySelector. It finds the closest upwards
+
+// Going sideways (only direct siblings
+console.log(h1.previousElementSibling);
+console.log(h1.nextElementSibling);
+console.log(h1.previousSibling);
+console.log(h1.nextSibling);
+
+// To get all siblings
+console.log(h1.parentElement.children);
+[...h1.parentElement.children].forEach(function (el) {
+  if (el !== h1) el.style.transform = 'scale(0.5)';
+});
 */
