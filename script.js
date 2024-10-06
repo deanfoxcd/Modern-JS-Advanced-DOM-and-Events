@@ -186,12 +186,11 @@ const sectionObserver = new IntersectionObserver(revealSection, revealOptions);
 
 allSections.forEach(section => {
   sectionObserver.observe(section);
-  section.classList.add('section--hidden');
+  // section.classList.add('section--hidden');
 });
 
 // Lazy Loading Images
 const imgTargets = document.querySelectorAll('img[data-src');
-console.log(imgTargets);
 
 const loadImg = function (entries, observer) {
   const [entry] = entries;
@@ -212,8 +211,93 @@ const loadImgOptions = {
 };
 
 const imgObserver = new IntersectionObserver(loadImg, loadImgOptions);
-
 imgTargets.forEach(img => imgObserver.observe(img));
+
+// Slider
+const slides = document.querySelectorAll('.slide');
+const btnLeft = document.querySelector('.slider__btn--left');
+const btnRight = document.querySelector('.slider__btn--right');
+const dotContainer = document.querySelector('.dots');
+
+let currSlide = 0;
+
+// const slider = document.querySelector('.slider');
+// slider.style.transform = 'scale(0.2)';
+// slider.style.overflow = 'visible';
+
+// slides.forEach((s, i) => (s.style.transform = `translateX(${100 * i}%)`));
+
+// Slider Functions
+
+// Put it all in one function so we don't pollute the global namespace
+const slider = function () {
+  const createDots = function () {
+    slides.forEach((_, i) => {
+      dotContainer.insertAdjacentHTML(
+        'beforeend',
+        `<button class="dots__dot dots__dot--active" data-slide="${i}"></button>`
+      );
+    });
+  };
+
+  const activateDot = function (s) {
+    document.querySelectorAll('.dots__dot').forEach(dot => {
+      dot.classList.remove('dots__dot--active');
+    });
+    document
+      .querySelector(`.dots__dot[data-slide="${s}"]`)
+      .classList.add('dots__dot--active');
+  };
+
+  const goToSlide = function (slide) {
+    slides.forEach((s, i) => {
+      s.style.transform = `translateX(${100 * (i - slide)}%)`;
+      activateDot(slide);
+    });
+  };
+
+  const nextSlide = function () {
+    currSlide++;
+    if (currSlide === slides.length) currSlide = 0;
+    goToSlide(currSlide);
+  };
+
+  const prevSlide = function () {
+    currSlide--;
+    if (currSlide < 0) currSlide = slides.length - 1;
+    goToSlide(currSlide);
+  };
+
+  const sliderInit = function () {
+    createDots();
+    goToSlide(0);
+  };
+  sliderInit();
+
+  // Slider Event Handlers
+  // Next slide
+  btnRight.addEventListener('click', () => {
+    nextSlide();
+  });
+  // Previous slide
+  btnLeft.addEventListener('click', () => {
+    prevSlide();
+  });
+
+  // With arrow keys
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') nextSlide();
+    e.key === 'ArrowLeft' && prevSlide();
+  });
+
+  dotContainer.addEventListener('click', e => {
+    if (e.target.classList.contains('dots__dot')) {
+      const { slide } = e.target.dataset;
+      goToSlide(slide);
+    }
+  });
+};
+slider();
 
 //////////// LECTURES
 
@@ -367,3 +451,20 @@ console.log(h1.parentElement.children);
   if (el !== h1) el.style.transform = 'scale(0.5)';
 });
 */
+
+// Lifecycle DOM events
+/*
+document.addEventListener('DOMContentLoaded', function (e) {
+  console.log('HTML parsed and DOM tree built', e);
+});
+
+window.addEventListener('load', e => console.log('Page fully loaded'));
+
+window.addEventListener('beforeunload', e => {
+  e.preventDefault();
+  console.log(e);
+  e.returnValue = '';
+});
+*/
+
+// Efficient Script Loading
